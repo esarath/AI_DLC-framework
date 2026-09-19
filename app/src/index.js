@@ -17,11 +17,12 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(`<!doctype html>
 <html>
-  <head><title>AI-DLC WebApp</title></head>
+  <head><title>Sample WebApp</title></head>
   <body style="font-family:sans-serif;text-align:center;margin-top:4rem">
-    <h1>AI-DLC Framework</h1>
+    <h1>Sample WebApp</h1>
     <p>Environment: <strong>${ENVIRONMENT}</strong> &middot; Version: <strong>${VERSION}</strong></p>
-    <p>Served from AKS via GitOps (ArgoCD)</p>
+    <p>Deployed to AKS via GitOps (ArgoCD), delivered with the<br/>
+       AI-Driven Development Life Cycle (AI-DLC) methodology</p>
   </body>
 </html>`);
     return;

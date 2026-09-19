@@ -1,7 +1,7 @@
 {
-  "name": "ai-dlc-webapp",
+  "name": "sample-webapp",
   "version": "1.0.0",
-  "description": "Simple web application for the AI-DLC AKS GitOps reference implementation",
+  "description": "Sample web application used as the demo workload in the AI-DLC (AI-Driven Development Life Cycle) AKS reference implementation",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

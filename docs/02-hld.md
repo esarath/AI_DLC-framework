@@ -2,7 +2,8 @@
 
 ## 1. Solution overview
 
-Deploy a containerised web application on **Azure AKS** with:
+A delivery platform built following the **AI-DLC (AI-Driven Development Life Cycle)**
+methodology, demonstrated with a containerised sample web application on **Azure AKS**:
 
 - **Compute:** AKS with an on-demand *system* pool and a **Spot user pool (autoscale 2–5 nodes)**
 - **Registry:** Azure Container Registry (ACR), one per environment

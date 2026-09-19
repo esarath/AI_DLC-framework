@@ -1,9 +1,11 @@
 # AI-DLC Framework — AKS GitOps Reference Implementation
 
-An **AI-Driven Development LifeCycle (AI-DLC)** reference framework that provisions and operates a
-simple web application on **Azure Kubernetes Service (AKS)** using Terraform, GitHub Actions,
-Azure Container Registry (ACR), ArgoCD (GitOps), and Jira — with guardrails, approvals, and a
-Dev → Stage → Prod promotion model.
+> **AI-DLC = AI-Driven Development Life Cycle** — a delivery *methodology*, not an application.
+> This repository **follows the AI-DLC model** end-to-end: it provisions and operates a **sample
+> web application** on **Azure Kubernetes Service (AKS)** using Terraform, GitHub Actions, Azure
+> Container Registry (ACR), ArgoCD (GitOps), and Jira — with guardrails, approvals, and a
+> Dev → Stage → Prod promotion model. The webapp (`app/`) is deliberately trivial; it exists only
+> as the workload that flows through the AI-DLC pipeline stages.
 
 ## Architecture at a glance
 

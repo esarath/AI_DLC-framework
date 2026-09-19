@@ -2,9 +2,14 @@
 
 ## What is AI-DLC?
 
-**AI-Driven Development LifeCycle (AI-DLC)** embeds AI assistance into every phase of the software
-delivery lifecycle — not as a bolt-on, but as a first-class participant with defined inputs,
-outputs, and human approval gates.
+**AI-DLC (AI-Driven Development Life Cycle)** is a software *delivery methodology* — **not an
+application**. It embeds AI assistance into every phase of the software delivery lifecycle — not
+as a bolt-on, but as a first-class participant with defined inputs, outputs, and human approval
+gates.
+
+This repository **implements the AI-DLC model**: the sample webapp in `app/` is only the demo
+workload that flows through the lifecycle; the framework itself is the pipeline, guardrails, and
+GitOps machinery around it.
 
 ```mermaid
 flowchart LR

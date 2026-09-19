@@ -27,7 +27,7 @@ test('GET / returns HTML page', async () => {
   const res = await fetch(`${baseUrl}/`);
   assert.strictEqual(res.status, 200);
   const body = await res.text();
-  assert.match(body, /AI-DLC Framework/);
+  assert.match(body, /Sample WebApp/);
 });
 
 test('GET /missing returns 404', async () => {

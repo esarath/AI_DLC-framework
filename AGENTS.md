@@ -5,9 +5,10 @@ working in this repository. Keep this file small — it loads every session.
 
 ## What this repo is
 
-AI-DLC reference implementation: a Node.js webapp deployed to **Azure AKS** via
-**Terraform + GitHub Actions + ACR + ArgoCD (GitOps)** across **dev → stage → prod**.
-Full design: `docs/02-hld.md` (HLD + diagrams), `docs/03-lld.md` (LLD steps).
+An implementation of the **AI-DLC (AI-Driven Development Life Cycle)** delivery methodology —
+AI-DLC is the *process model this repo follows*, not an application. The repo delivers a sample
+Node.js webapp to **Azure AKS** via **Terraform + GitHub Actions + ACR + ArgoCD (GitOps)** across
+**dev → stage → prod**. Full design: `docs/02-hld.md` (HLD + diagrams), `docs/03-lld.md` (LLD steps).
 
 ## Repo map
 
