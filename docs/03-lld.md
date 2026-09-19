@@ -15,6 +15,10 @@ Azure subscription: **`995377ec-18d5-43bb-98db-74ab68a2ef8f`**
 
 ## 1. GitHub configuration
 
+> **Automated path:** run `./scripts/setup-github.sh` (requires `az login` + `gh auth login`).
+> It performs §1.1–§1.5: Entra app + OIDC creds, secrets/variables, environments with
+> reviewers, and branch protection. The manual steps below remain as reference/verification.
+
 ### 1.1 Secrets (Settings → Secrets and variables → Actions)
 
 | Secret | Purpose |
