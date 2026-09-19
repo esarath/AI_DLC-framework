@@ -39,6 +39,9 @@ flowchart LR
 
 ## Quick start
 
+> 🚀 **New here? Start with [`docs/00-execution-guide.md`](docs/00-execution-guide.md)** — a
+> step-by-step runbook with timeline (~60–90 min for dev) and cost estimates (~$0.55–0.65/hr).
+
 1. **Prereqs:** Azure subscription `995377ec-18d5-43bb-98db-74ab68a2ef8f`, `az`, `terraform >= 1.6`,
    `kubectl`, `kustomize`, `argocd` CLI. Configure the GitHub secrets/variables listed in
    [`docs/03-lld.md`](docs/03-lld.md).
