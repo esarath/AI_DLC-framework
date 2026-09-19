@@ -35,7 +35,7 @@ jobs:
       matrix:
         env: [dev, stage, prod]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.target_env }} # approval gate for stage/prod applies
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
