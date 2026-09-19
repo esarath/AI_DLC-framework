@@ -33,7 +33,7 @@ jobs:
       DST_ACR: acraidlcstage
       OVERLAY: k8s/overlays/stage
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Azure login (OIDC)
         uses: azure/login@v3
@@ -89,7 +89,7 @@ jobs:
       DST_ACR: acraidlcprod
       OVERLAY: k8s/overlays/prod
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Jira — verify release approval
         uses: atlassian/gajira-login@v3
