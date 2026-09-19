@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ai-dlc
+  namespace: argocd
+spec:
+  description: AI-DLC framework workloads (webapp dev/stage/prod)
+  sourceRepos:
+    - https://github.com/esarath/AI_DLC-framework.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: webapp-*
+    - server: https://kubernetes.default.svc
+      namespace: webapp
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  # Guardrail: only allow sync windows you define; block prod drift edits outside sync.
+  syncWindows:
+    - kind: deny
+      schedule: "0 0 * * 0" # freeze Sundays
+      duration: 24h
+      applications:
+        - webapp-prod
+      manualSync: true
+  roles:
+    - name: deployer
+      description: CI promotion role
+      policies:
+        - p, proj:ai-dlc:deployer, applications, sync, ai-dlc/*, allow
+        - p, proj:ai-dlc:deployer, applications, get, ai-dlc/*, allow
+      groups: []

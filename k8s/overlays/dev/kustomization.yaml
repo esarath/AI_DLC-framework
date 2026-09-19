@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: webapp-dev
+
+resources:
+  - ../../base
+
+commonLabels:
+  environment: dev
+
+patches:
+  - path: patch-replicas.yaml
+
+images:
+  - name: ACLOGIN_SERVER_PLACEHOLDER/webapp
+    newName: acraidlcdev.azurecr.io/webapp
+    newTag: dev-latest # updated by the CD workflow on each build

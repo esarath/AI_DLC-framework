@@ -1,0 +1,58 @@
+name: AI-DLC — PR triage & risk summary
+
+# Posts an automated triage comment on every PR: change summary, risk flags,
+# Jira key detection, and required-gate checklist. Swap the body-generation
+# step for an Azure OpenAI / Copilot call when AZURE_OPENAI_* secrets are set.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate triage summary
+        id: triage
+        run: |
+          {
+            echo "### AI-DLC PR Triage"
+            echo ""
+            echo "**Files changed:** $(git diff --name-only origin/main...HEAD | wc -l)"
+            echo ""
+            echo '```'
+            git diff --stat origin/main...HEAD | tail -20
+            echo '```'
+            echo ""
+            git diff --name-only origin/main...HEAD | grep -q '^terraform/' && \
+              echo "- ⚠️ **Terraform change** — `terraform plan` must pass before merge."
+            git diff --name-only origin/main...HEAD | grep -q '^k8s/overlays/prod' && \
+              echo "- ⚠️ **Prod manifest change** — requires prod environment approval + Jira key."
+            if ! echo "${{ github.event.pull_request.title }}" | grep -qE 'KAN-[0-9]+'; then
+              echo "- ⚠️ No Jira issue key (KAN-n) found in PR title — add one for traceability."
+            fi
+            echo ""
+            echo "**Gates:** tests ✔ required · Trivy ✔ required · Checkov (tf) · OPA (k8s) · reviewer approval"
+          } > triage.md
+          echo "done" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('triage.md', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

@@ -1,0 +1,16 @@
+# Gatekeeper constraint — blocks :latest image tags in the cluster.
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sDisallowedTags
+metadata:
+  name: disallow-latest-tag
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+    namespaces: ["webapp-dev", "webapp-stage", "webapp-prod"]
+  parameters:
+    tags: ["latest"]
+---
+# Template reference (apply once per cluster):
+# kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper-library/master/library/general/disallowedtags/template.yaml

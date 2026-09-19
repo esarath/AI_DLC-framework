@@ -1,0 +1,22 @@
+# Gatekeeper constraint — enforces resource requests/limits in-cluster.
+# Install Gatekeeper first:
+#   kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.17/deploy/gatekeeper.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredResources
+metadata:
+  name: require-webapp-resources
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+    namespaces: ["webapp-dev", "webapp-stage", "webapp-prod"]
+  parameters:
+    limits:
+      - memory
+    requests:
+      - cpu
+      - memory
+---
+# Template reference (apply once per cluster):
+# kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper-library/master/library/general/requiredresources/template.yaml

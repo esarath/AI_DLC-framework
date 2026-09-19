@@ -1,0 +1,10 @@
+# Checkov configuration — referenced by the terraform workflow.
+# Tune skip-check only with a documented reason + Jira ticket.
+framework:
+  - terraform
+  - kubernetes
+output-format: cli
+soft-fail: false
+# Known/accepted exceptions (document reason + ticket):
+# skip-check:
+#   - CKV_AZURE_xxx  # KAN-n reason here

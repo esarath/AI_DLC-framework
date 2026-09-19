@@ -1,0 +1,163 @@
+name: CD — promote image (stage / prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Environment to promote to"
+        required: true
+        type: choice
+        options: [stage, prod]
+      image_tag:
+        description: "Image tag to promote (e.g. sha-abc1234)"
+        required: true
+      jira_issue:
+        description: "Jira issue key authorising this release (e.g. KAN-12)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  IMAGE_NAME: webapp
+
+jobs:
+  promote-stage:
+    if: inputs.target_env == 'stage'
+    runs-on: ubuntu-latest
+    environment: stage # GitHub Environment protection: required reviewers
+    env:
+      SRC_ACR: acraidlcdev
+      DST_ACR: acraidlcstage
+      OVERLAY: k8s/overlays/stage
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Copy image dev -> stage ACR
+        run: |
+          az acr import --name "${DST_ACR}" \
+            --source "${SRC_ACR}.azurecr.io/${IMAGE_NAME}:${{ inputs.image_tag }}" \
+            --image "${IMAGE_NAME}:${{ inputs.image_tag }}" \
+            --image "${IMAGE_NAME}:stage-latest" --force
+
+      - name: Bump stage overlay tag
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          cd "${OVERLAY}"
+          ~/kustomize edit set image \
+            "ACLOGIN_SERVER_PLACEHOLDER/webapp=${DST_ACR}.azurecr.io/${IMAGE_NAME}:${{ inputs.image_tag }}"
+
+      - name: Commit + push
+        run: |
+          git config user.name "ai-dlc-bot"
+          git config user.email "ai-dlc-bot@users.noreply.github.com"
+          git add "${OVERLAY}/kustomization.yaml"
+          git commit -m "gitops(stage): promote ${{ inputs.image_tag }} (${{ inputs.jira_issue }}) [skip ci]"
+          git push
+
+      - name: Wait for ArgoCD sync + smoke test
+        run: |
+          sleep 60  # ArgoCD poll interval; replace with argocd app wait if CLI auth is configured
+          ENV=stage BASE_URL="http://aidlc-stage-ingress.eastus.cloudapp.azure.com" ./scripts/smoke-test.sh
+
+      - name: Jira — transition issue to "In Staging"
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      - uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ inputs.jira_issue }}
+          transition: "In Staging"
+
+  promote-prod:
+    if: inputs.target_env == 'prod'
+    runs-on: ubuntu-latest
+    environment: prod # GitHub Environment protection: required reviewers + wait timer
+    env:
+      SRC_ACR: acraidlcstage
+      DST_ACR: acraidlcprod
+      OVERLAY: k8s/overlays/prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Jira — verify release approval
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      - name: Jira — issue must be in an approved status
+        uses: atlassian/gajira-find-issue-key@v3
+        with:
+          string: ${{ inputs.jira_issue }}
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Copy image stage -> prod ACR
+        run: |
+          az acr import --name "${DST_ACR}" \
+            --source "${SRC_ACR}.azurecr.io/${IMAGE_NAME}:${{ inputs.image_tag }}" \
+            --image "${IMAGE_NAME}:${{ inputs.image_tag }}" \
+            --image "${IMAGE_NAME}:prod-latest" --force
+
+      - name: Bump prod overlay tag
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          cd "${OVERLAY}"
+          ~/kustomize edit set image \
+            "ACLOGIN_SERVER_PLACEHOLDER/webapp=${DST_ACR}.azurecr.io/${IMAGE_NAME}:${{ inputs.image_tag }}"
+
+      - name: Commit + push (records desired state; prod sync is manual)
+        run: |
+          git config user.name "ai-dlc-bot"
+          git config user.email "ai-dlc-bot@users.noreply.github.com"
+          git add "${OVERLAY}/kustomization.yaml"
+          git commit -m "gitops(prod): release ${{ inputs.image_tag }} (${{ inputs.jira_issue }}) [skip ci]"
+          git push
+
+      # Prod Application is manual-sync; drive the sync explicitly so the
+      # workflow can watch health and roll back on failure.
+      - name: ArgoCD sync + wait (prod)
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        run: |
+          argocd app sync webapp-prod --server "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web
+          argocd app wait webapp-prod --health --timeout 600 --server "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web
+
+      - name: Smoke test prod
+        id: smoke
+        run: BASE_URL="https://fde-aidlc-prod.azurefd.net" ./scripts/smoke-test.sh
+
+      - name: Auto-rollback on failed smoke test
+        if: failure() && steps.smoke.conclusion == 'failure'
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        run: |
+          PREV=$(argocd app history webapp-prod -o json --server "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web | jq -r '.[-2].id')
+          argocd app rollback webapp-prod "$PREV" --server "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web
+          exit 1
+
+      - name: Jira — transition issue to Done
+        if: success()
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ inputs.jira_issue }}
+          transition: "Done"

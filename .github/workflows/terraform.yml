@@ -1,0 +1,98 @@
+name: Terraform — plan & apply
+
+on:
+  pull_request:
+    paths: ["terraform/**"]
+  push:
+    branches: [main]
+    paths: ["terraform/**"]
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Environment"
+        required: true
+        type: choice
+        options: [dev, stage, prod]
+      apply:
+        description: "Run terraform apply"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+defaults:
+  run:
+    working-directory: terraform
+
+jobs:
+  validate-plan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, stage, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: fmt check
+        run: terraform fmt -check -recursive
+
+      - name: init (no backend)
+        run: terraform init -backend=false
+
+      - name: validate
+        run: terraform validate
+
+      # ---- guardrail: IaC security/compliance scan ----
+      - name: Checkov IaC scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          framework: terraform
+          soft_fail: false
+          output_format: cli
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: terraform plan (${{ matrix.env }})
+        run: |
+          terraform init -backend=false -reconfigure
+          terraform plan -input=false -lock=false \
+            -var-file="environments/${{ matrix.env }}.tfvars" \
+            -out="${{ matrix.env }}.tfplan"
+
+  apply:
+    if: github.event_name == 'workflow_dispatch' && inputs.apply
+    needs: validate-plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }} # approval gate for stage/prod applies
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: terraform apply
+        run: |
+          terraform init -backend=false -reconfigure
+          terraform apply -auto-approve -input=false \
+            -var-file="environments/${{ inputs.target_env }}.tfvars"

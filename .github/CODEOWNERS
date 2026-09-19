@@ -1,0 +1,7 @@
+# Require owner review on all paths; tighten per-directory as the team grows.
+*                        @esarath
+
+# Guardrails: infra + prod manifests always need explicit owner sign-off.
+/terraform/              @esarath
+/k8s/overlays/prod/      @esarath
+/.github/workflows/      @esarath
