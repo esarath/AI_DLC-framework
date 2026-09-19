@@ -87,6 +87,18 @@ variable "enable_traffic_manager" {
   default     = false
 }
 
+variable "enable_container_insights" {
+  description = "Monitoring option A: Log Analytics Container Insights (oms_agent) on AKS"
+  type        = bool
+  default     = true
+}
+
+variable "enable_managed_prometheus_grafana" {
+  description = "Monitoring option B: Azure Managed Prometheus (AMW) + Managed Grafana"
+  type        = bool
+  default     = false
+}
+
 variable "log_retention_days" {
   description = "Log Analytics retention in days"
   type        = number

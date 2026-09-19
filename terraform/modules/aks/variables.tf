@@ -16,6 +16,15 @@ variable "enable_agic" {
 }
 variable "acr_id" { type = string }
 variable "log_analytics_ws_id" { type = string }
+variable "enable_container_insights" {
+  type    = bool
+  default = true
+}
+variable "enable_monitor_metrics" {
+  description = "Enable managed Prometheus metrics addon (ama-metrics) on the cluster"
+  type        = bool
+  default     = false
+}
 variable "system_node_pool" {
   type = object({
     vm_size   = string

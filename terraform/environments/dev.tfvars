@@ -23,6 +23,10 @@ enable_front_door     = true
 enable_traffic_manager = false
 log_retention_days    = 30
 
+# Monitoring: pick option A, option B, or both (docs/09-monitoring-options.md)
+enable_container_insights          = true   # Option A: Log Analytics + App Insights
+enable_managed_prometheus_grafana  = false  # Option B: Azure Managed Prometheus + Grafana
+
 tags = {
   cost_center = "engineering"
   owner       = "esarath"

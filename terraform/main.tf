@@ -60,7 +60,24 @@ module "aks" {
   system_node_pool = var.system_node_pool
   spot_node_pool   = var.spot_node_pool
 
+  enable_container_insights = var.enable_container_insights
+  enable_monitor_metrics    = var.enable_managed_prometheus_grafana
+
   tags = local.tags
+}
+
+# Monitoring option B — Azure Managed Prometheus + Managed Grafana.
+# Complements or replaces Container Insights (var.enable_container_insights).
+module "observability" {
+  source = "./modules/observability"
+  count  = var.enable_managed_prometheus_grafana ? 1 : 0
+
+  name_prefix      = local.name_prefix
+  location         = azurerm_resource_group.main.location
+  resource_group   = azurerm_resource_group.main.name
+  aks_cluster_id   = module.aks.cluster_id
+  aks_cluster_name = module.aks.cluster_name
+  tags             = local.tags
 }
 
 module "frontdoor" {

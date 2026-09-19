@@ -122,10 +122,17 @@ flowchart TB
     LAW --> ALERTS["Azure Monitor alerts<br/>(CPU, pod restarts, Spot evictions)"]
     APPINS --> ALERTS
     ALERTS --> ACT["Action group →<br/>email / Teams / Jira automation"]
+
+    subgraph OptB["Option B (toggle): Managed Prometheus + Grafana"]
+        AMA["ama-metrics agent<br/>(monitor_metrics addon)"] --> AMW["Azure Monitor Workspace<br/>amw-aidlc-<env>"]
+        APP -.->|"/metrics annotations"| AMA
+        AMW --> GRAF["Managed Grafana<br/>grafana-aidlc-<env>"]
+    end
 ```
 
-Recommended managed additions (documented in best practices): Azure Managed Prometheus +
-Managed Grafana for PromQL dashboards and ArgoCD sync health panels.
+**Alternate stack available:** set `enable_managed_prometheus_grafana = true` to provision Azure
+Managed Prometheus (Azure Monitor Workspace + ama-metrics DCR pipeline) and Azure Managed Grafana —
+standalone or alongside Option A. Full comparison and setup: `docs/09-monitoring-options.md`.
 
 ## 7. Environments & isolation
 

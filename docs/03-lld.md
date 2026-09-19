@@ -91,6 +91,7 @@ terraform apply -var-file=environments/dev.tfvars
 | ACR | `acraidlcdev` |
 | Front Door | `afd-aidlc-dev` + endpoint `fde-aidlc-dev` |
 | Log Analytics + App Insights | `law-aidlc-dev`, `appi-aidlc-dev` |
+| *(optional)* AMW + Grafana | `amw-aidlc-dev`, `grafana-aidlc-dev` — only when `enable_managed_prometheus_grafana = true` (see `docs/09-monitoring-options.md`) |
 
 **RBAC wired automatically:** kubelet → `AcrPull` on ACR; AGIC identity → Contributor on AppGW,
 Reader on RG, Network Contributor on AppGW subnet.

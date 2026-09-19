@@ -33,3 +33,13 @@ output "traffic_manager_fqdn" {
 output "log_analytics_workspace_id" {
   value = module.monitoring.log_analytics_workspace_id
 }
+
+output "grafana_endpoint" {
+  description = "Managed Grafana URL (when enable_managed_prometheus_grafana = true)"
+  value       = var.enable_managed_prometheus_grafana ? module.observability[0].grafana_endpoint : null
+}
+
+output "prometheus_query_endpoint" {
+  description = "Azure Monitor Workspace PromQL query endpoint"
+  value       = var.enable_managed_prometheus_grafana ? module.observability[0].monitor_workspace_query_endpoint : null
+}

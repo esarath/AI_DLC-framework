@@ -57,5 +57,8 @@ flowchart LR
   Jira issue keys gate promotion via `gajira` transitions.
 - **Defense-in-depth scanning:** Trivy (image), Checkov (IaC), Conftest/OPA (manifests), CodeQL
   (source), Gatekeeper (in-cluster policy).
+- **Pluggable monitoring:** Azure Monitor (Container Insights + App Insights) by default, with
+  **Azure Managed Prometheus + Managed Grafana** as a toggleable alternative — see
+  [`docs/09-monitoring-options.md`](docs/09-monitoring-options.md).
 
 See [`docs/02-hld.md`](docs/02-hld.md) for the full high-level design and diagrams.

@@ -21,6 +21,11 @@ spec:
     metadata:
       labels:
         app: webapp
+      annotations:
+        # Scraped by Azure Managed Prometheus when enabled (ama-metrics agent)
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
     spec:
       # Schedule onto the Spot node pool (tolerates its taint + prefers its label).
       tolerations:

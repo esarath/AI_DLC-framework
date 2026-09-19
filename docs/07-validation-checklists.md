@@ -30,6 +30,8 @@
 - [ ] `kubectl -n webapp-<env> get pods` — all Ready, spread across nodes (`-o wide`)
 - [ ] HPA live: `kubectl -n webapp-<env> get hpa` — metrics flowing
 - [ ] Container Insights shows logs in `law-aidlc-<env>`; App Insights receiving requests
+- [ ] *(if Option B enabled)* Grafana endpoint reachable (`terraform output grafana_endpoint`),
+      AMW data source healthy, `http_requests_total` queryable for the webapp namespace
 - [ ] ArgoCD app `Healthy`, `revisionHistory` updated
 - [ ] Front Door endpoint returns 200: `https://fde-aidlc-<env>.azurefd.net`
 - [ ] Jira issue transitioned (In Staging / Done) with deployment comment

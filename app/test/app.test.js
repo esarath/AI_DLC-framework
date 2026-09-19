@@ -30,6 +30,14 @@ test('GET / returns HTML page', async () => {
   assert.match(body, /Sample WebApp/);
 });
 
+test('GET /metrics exposes prometheus counters', async () => {
+  const res = await fetch(`${baseUrl}/metrics`);
+  assert.strictEqual(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /http_requests_total/);
+  assert.match(body, /app_uptime_seconds/);
+});
+
 test('GET /missing returns 404', async () => {
   const res = await fetch(`${baseUrl}/missing`);
   assert.strictEqual(res.status, 404);

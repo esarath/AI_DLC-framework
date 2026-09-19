@@ -23,6 +23,10 @@ enable_front_door     = true
 enable_traffic_manager = true   # enable for multi-region / failover routing
 log_retention_days    = 90
 
+# Monitoring: pick option A, option B, or both (docs/09-monitoring-options.md)
+enable_container_insights          = true   # Option A: Log Analytics + App Insights
+enable_managed_prometheus_grafana  = true   # Option B: Azure Managed Prometheus + Grafana
+
 tags = {
   cost_center = "engineering"
   owner       = "esarath"

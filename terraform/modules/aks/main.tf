@@ -132,9 +132,21 @@ resource "azurerm_kubernetes_cluster" "main" {
   local_account_disabled           = false  # set true + AAD RBAC for production hardening
   role_based_access_control_enabled = true
 
-  oms_agent {
-    log_analytics_workspace_id      = var.log_analytics_ws_id
-    msi_auth_for_monitoring_enabled = true
+  dynamic "oms_agent" {
+    for_each = var.enable_container_insights ? [1] : []
+    content {
+      log_analytics_workspace_id      = var.log_analytics_ws_id
+      msi_auth_for_monitoring_enabled = true
+    }
+  }
+
+  # Managed Prometheus metrics addon — pairs with modules/observability (AMW+DCR+Grafana)
+  dynamic "monitor_metrics" {
+    for_each = var.enable_monitor_metrics ? [1] : []
+    content {
+      annotations_allowed = true
+      labels_allowed      = true
+    }
   }
 
   key_vault_secrets_provider {
