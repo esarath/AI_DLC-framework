@@ -1,11 +1,11 @@
 # ---- build stage ----
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 COPY package.json ./
 # No runtime deps today; layer kept so `npm ci --omit=dev` slots in cleanly later.
 
 # ---- runtime stage ----
-FROM node:20-alpine
+FROM node:25-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 
