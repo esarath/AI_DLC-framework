@@ -1,0 +1,35 @@
+// Devin project configuration — shared, committed to git.
+// Personal overrides go in .devin/config.local.json (gitignored).
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(**)",
+      "Write(**)",
+      "Exec(git status)",
+      "Exec(git diff *)",
+      "Exec(git log *)",
+      "Exec(git add *)",
+      "Exec(git commit *)",
+      "Exec(npm run lint)",
+      "Exec(npm test)",
+      "Exec(npm run test)",
+      "Exec(node *)",
+      "Exec(kubectl kustomize *)",
+      "Exec(terraform fmt *)",
+      "Exec(terraform validate)",
+      "Exec(terraform init -backend=false)",
+      "Exec(conftest *)",
+      "Exec(python3 *)",
+      "Exec(gh *)"
+    ],
+    "deny": [
+      "Exec(sudo *)",
+      "Exec(terraform destroy *)",
+      "Exec(terraform apply *)",
+      "Exec(kubectl apply *)",
+      "Exec(kubectl delete *)",
+      "Exec(az *delete*)"
+    ]
+  }
+}

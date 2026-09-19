@@ -28,6 +28,11 @@ node_modules/
 npm-debug.log*
 coverage/
 
+# AI-tool local overrides (personal, never committed)
+AGENTS.local.md
+.devin/config.local.json
+.devin/mcp_config.local.json
+
 # OS / editor
 .DS_Store
 .idea/

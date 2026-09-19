@@ -33,6 +33,7 @@ flowchart LR
 | `.github/workflows/` | CI (build/test/scan/push), CD per environment, Terraform plan/apply, scheduled security scans |
 | `policies/` | Checkov config, OPA/Conftest Rego, Gatekeeper constraints |
 | `scripts/` | ArgoCD bootstrap, rollback, smoke test |
+| `AGENTS.md` / `CLAUDE.md` / `.windsurf/rules/` / `.devin/` | Shared AI-agent rules + Devin project config (works with Devin CLI, Claude Code, Windsurf Cascade) |
 
 ## Quick start
 
