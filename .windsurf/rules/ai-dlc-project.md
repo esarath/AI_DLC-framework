@@ -13,5 +13,5 @@ description: AI-DLC framework project conventions for Windsurf Cascade
 - Image tags are immutable `sha-*`; CI bumps overlay `newTag` automatically.
 - Reference Jira keys (`KAN-n`) in PR titles/commit messages.
 - Verify before finishing: `cd app && npm test`, `kubectl kustomize k8s/overlays/dev`,
-  `terraform fmt -check -recursive` (terraform not installed locally — note it).
+  `terraform fmt -check -recursive` and `terraform validate` (terraform is installed).
 - Never commit secrets, `*.tfstate`, or kubeconfigs; Azure auth is OIDC-only.

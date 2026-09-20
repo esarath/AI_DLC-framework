@@ -16,11 +16,11 @@ resource "azurerm_resource_group" "main" {
 module "network" {
   source = "./modules/network"
 
-  name_prefix       = local.name_prefix
-  location          = azurerm_resource_group.main.location
-  resource_group    = azurerm_resource_group.main.name
+  name_prefix         = local.name_prefix
+  location            = azurerm_resource_group.main.location
+  resource_group      = azurerm_resource_group.main.name
   enable_appgw_subnet = var.enable_agic
-  tags              = local.tags
+  tags                = local.tags
 }
 
 module "acr" {
@@ -49,13 +49,14 @@ module "aks" {
   name_prefix        = local.name_prefix
   location           = azurerm_resource_group.main.location
   resource_group     = azurerm_resource_group.main.name
+  resource_group_id  = azurerm_resource_group.main.id
   kubernetes_version = var.kubernetes_version
 
-  aks_subnet_id        = module.network.aks_subnet_id
-  appgw_subnet_id      = module.network.appgw_subnet_id
-  enable_agic          = var.enable_agic
-  acr_id               = module.acr.acr_id
-  log_analytics_ws_id  = module.monitoring.log_analytics_workspace_id
+  aks_subnet_id       = module.network.aks_subnet_id
+  appgw_subnet_id     = module.network.appgw_subnet_id
+  enable_agic         = var.enable_agic
+  acr_id              = module.acr.acr_id
+  log_analytics_ws_id = module.monitoring.log_analytics_workspace_id
 
   system_node_pool = var.system_node_pool
   spot_node_pool   = var.spot_node_pool
@@ -88,16 +89,16 @@ module "frontdoor" {
   resource_group = azurerm_resource_group.main.name
   # Front Door probes/routes to the Application Gateway public frontend when AGIC
   # is enabled, otherwise to the AKS LoadBalancer FQDN.
-  origin_host    = module.aks.ingress_fqdn
-  tags           = local.tags
+  origin_host = module.aks.ingress_fqdn
+  tags        = local.tags
 }
 
 module "trafficmanager" {
   source = "./modules/trafficmanager"
   count  = var.enable_traffic_manager ? 1 : 0
 
-  name_prefix      = local.name_prefix
-  resource_group   = azurerm_resource_group.main.name
-  endpoint_fqdn    = var.enable_front_door ? module.frontdoor[0].endpoint_hostname : module.aks.ingress_fqdn
-  tags             = local.tags
+  name_prefix    = local.name_prefix
+  resource_group = azurerm_resource_group.main.name
+  endpoint_fqdn  = var.enable_front_door ? module.frontdoor[0].endpoint_hostname : module.aks.ingress_fqdn
+  tags           = local.tags
 }

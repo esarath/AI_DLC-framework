@@ -1,6 +1,7 @@
 variable "name_prefix" { type = string }
 variable "location" { type = string }
 variable "resource_group" { type = string }
+variable "resource_group_id" { type = string }
 variable "kubernetes_version" {
   type    = string
   default = null

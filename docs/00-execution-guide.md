@@ -14,18 +14,20 @@ You need these tools on your machine:
 
 | Tool | Check command | Install hint |
 |------|---------------|--------------|
-| Azure CLI | `az version` | `curl -sL https://aka.ms/InstallAzureCLIDeb \| sudo bash` |
+| Azure CLI | `az version` | RHEL/CentOS: `packages-microsoft-prod` yum repo → `sudo dnf install azure-cli` · Debian/Ubuntu: `curl -sL https://aka.ms/InstallAzureCLIDeb \| sudo bash` |
 | GitHub CLI | `gh --version` | `sudo dnf install gh` / `brew install gh` |
-| Terraform | `terraform version` (≥1.6) | https://developer.hashicorp.com/terraform/install |
+| Terraform | `terraform version` (≥1.6) | RHEL/CentOS: `sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo && sudo dnf install terraform` |
 | kubectl | `kubectl version --client` | `az aks install-cli` |
 | kustomize | `kubectl kustomize --help` | built into kubectl ✅ |
 | argocd CLI | `argocd version --client` | `curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 && chmod +x /usr/local/bin/argocd` |
+| docker | `docker version` | `sudo dnf install docker-ce` — only needed for local image builds (CI builds in the cloud) |
+| helm | `helm version` | optional — ArgoCD bootstrap uses plain `kubectl apply` |
 | git | `git --version` | preinstalled |
 
 Then log in to both clouds:
 
 ```bash
-az login
+az login                  # headless box (no browser)? use: az login --use-device-code
 az account set --subscription 995377ec-18d5-43bb-98db-74ab68a2ef8f
 gh auth login
 git clone https://github.com/esarath/AI_DLC-framework.git && cd AI_DLC-framework
@@ -60,6 +62,11 @@ terraform init
 terraform apply -var-file=environments/dev.tfvars
 # review the plan → type: yes
 ```
+
+> ℹ️ The code targets **azurerm `~> 5.x`** (uses `node_provisioning_profile`,
+> `certificate_name_check_enabled`, `auto_scaling_enabled`). If `init` resolves an older
+> provider — or you see schema errors like *"Insufficient node_provisioning_profile
+> blocks"* — run `terraform init -upgrade`.
 
 This creates: `rg-aidlc-dev` → VNet → AKS (`aks-aidlc-dev`: system pool 1–2 + **Spot pool 2–5**) →
 ACR `acraidlcdev` → App Gateway `agw-aidlc-dev` + public IP → Front Door `afd-aidlc-dev` →
@@ -133,7 +140,7 @@ terraform apply -var-file=environments/stage.tfvars   # ~15-20 min
 ENV=stage ./scripts/bootstrap-argocd.sh               # ~5 min
 ```
 
-Then in GitHub → **Actions → "CD — promote image" → Run workflow**:
+Then in GitHub → **Actions → "CD — promote image (stage / prod)" → Run workflow**:
 
 | Field | stage | prod |
 |-------|-------|------|
@@ -204,6 +211,11 @@ persists — no need to redo it.)
 
 | Symptom | Fix |
 |---------|-----|
+| `az login` prints nothing for ~15 s | Headless host — it's falling back to device code. Wait for the prompt, or run `az login --use-device-code` |
+| Schema errors (`node_provisioning_profile`, `certificate_name_check_enabled`, `max_surge` on Spot) | Code requires azurerm `~> 5.x` — `terraform init -upgrade` and re-validate |
+| `terraform refresh` errors / prompts | Deprecated — use `terraform plan -refresh-only -var-file=...` (or just `plan`/`apply`, which refresh anyway) |
+| `ErrCode_InsufficientVCPUQuota` on AKS create | Subscription vCPU cap — check `az vm list-usage -l <region>` per family + "Total Regional Low-priority" (Spot). dev.tfvars is already downsized for a 10-vCPU/3-Spot sub; restore doc sizes after a quota increase |
+| `ServiceCidrOverlapExistingSubnetsCidr` | `service_cidr` must not overlap the VNet — `modules/aks` uses `10.240.0.0/16` (VNet is `10.0.0.0/16`) |
 | `azure/login` fails in Actions | Check `AZURE_CLIENT_ID`/`TENANT_ID` secrets + fedcred subject matches `repo:esarath/AI_DLC-framework:environment:<env>` |
 | Pods `ImagePullBackOff` | `AcrPull` role assignment — check `terraform apply` completed; `az aks check-acr` |
 | Ingress has no address | AGIC identity needs Contributor on AppGW (auto-created in `modules/aks`) — wait ~5 min |

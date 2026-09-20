@@ -1,7 +1,3 @@
-data "azurerm_resource_group" "main" {
-  name = var.resource_group
-}
-
 # Public IP + DNS label used as the ingress frontend (App Gateway when AGIC is
 # enabled; otherwise it can be adopted by a LoadBalancer service annotation).
 resource "azurerm_public_ip" "ingress" {
@@ -101,15 +97,21 @@ resource "azurerm_kubernetes_cluster" "main" {
   kubernetes_version  = var.kubernetes_version
   tags                = var.tags
 
+  # Required by azurerm ~> 5.x. "Manual" keeps our explicit system + spot
+  # pools; "Auto" would enable NAP (Karpenter) auto-provisioning instead.
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   # On-demand system pool — keeps cluster/system pods off Spot capacity.
   default_node_pool {
-    name                = "system"
-    vm_size             = var.system_node_pool.vm_size
-    vnet_subnet_id      = var.aks_subnet_id
+    name                 = "system"
+    vm_size              = var.system_node_pool.vm_size
+    vnet_subnet_id       = var.aks_subnet_id
     auto_scaling_enabled = true
-    min_count           = var.system_node_pool.min_count
-    max_count           = var.system_node_pool.max_count
-    os_disk_size_gb     = 64
+    min_count            = var.system_node_pool.min_count
+    max_count            = var.system_node_pool.max_count
+    os_disk_size_gb      = 64
     upgrade_settings {
       max_surge = "33%"
     }
@@ -124,12 +126,16 @@ resource "azurerm_kubernetes_cluster" "main" {
     network_policy    = "azure"
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
+    # Must not overlap the VNet (10.0.0.0/16) — Azure's default service
+    # CIDR is also 10.0.0.0/16, so a dedicated range is required.
+    service_cidr   = "10.240.0.0/16"
+    dns_service_ip = "10.240.0.10"
   }
 
-  azure_policy_enabled             = true
-  oidc_issuer_enabled              = true   # enables workload identity / GitHub OIDC federation
-  workload_identity_enabled        = true
-  local_account_disabled           = false  # set true + AAD RBAC for production hardening
+  azure_policy_enabled              = true
+  oidc_issuer_enabled               = true # enables workload identity / GitHub OIDC federation
+  workload_identity_enabled         = true
+  local_account_disabled            = false # set true + AAD RBAC for production hardening
   role_based_access_control_enabled = true
 
   dynamic "oms_agent" {
@@ -189,9 +195,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "spot" {
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
-  upgrade_settings {
-    max_surge = "33%"
-  }
+  # No upgrade_settings: Spot pools don't support max_surge.
   tags = var.tags
 }
 
@@ -222,7 +226,7 @@ resource "azurerm_role_assignment" "agic_appgw_contributor" {
 
 resource "azurerm_role_assignment" "agic_rg_reader" {
   count                            = var.enable_agic ? 1 : 0
-  scope                            = data.azurerm_resource_group.main.id
+  scope                            = var.resource_group_id
   role_definition_name             = "Reader"
   principal_id                     = local.agic_identity
   skip_service_principal_aad_check = true

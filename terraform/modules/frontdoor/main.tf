@@ -31,15 +31,16 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "aks" {
-  name                          = "origin-aks-ingress"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.main.id
-  host_name                     = var.origin_host
-  http_port                     = 80
-  https_port                    = 443
-  origin_host_header            = var.origin_host
-  priority                      = 1
-  weight                        = 1000
-  enabled                       = true
+  name                           = "origin-aks-ingress"
+  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.main.id
+  host_name                      = var.origin_host
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = var.origin_host
+  priority                       = 1
+  weight                         = 1000
+  enabled                        = true
+  certificate_name_check_enabled = true
 }
 
 resource "azurerm_cdn_frontdoor_route" "main" {

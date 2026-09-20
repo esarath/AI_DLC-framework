@@ -54,13 +54,13 @@ add_fedcred() {
 }
 
 add_fedcred "main"        "repo:${REPO}:ref:refs/heads/main"
-add_fedcred "pr"          "repo:${REPO}:pull_request"
+add_fedcred "pull-request" "repo:${REPO}:pull_request"
 add_fedcred "env-dev"     "repo:${REPO}:environment:dev"
 add_fedcred "env-stage"   "repo:${REPO}:environment:stage"
 add_fedcred "env-prod"    "repo:${REPO}:environment:prod"
 
 # --- 3. GitHub secrets + variables -------------------------------------------
-TENANT_ID=$(az account show --tenant-id -o tsv)
+TENANT_ID=$(az account show --query tenantId -o tsv)
 
 gh secret set AZURE_CLIENT_ID   --body "${APP_ID}"         --repo "${REPO}"
 gh secret set AZURE_TENANT_ID   --body "${TENANT_ID}"      --repo "${REPO}"

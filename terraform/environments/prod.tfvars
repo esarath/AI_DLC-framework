@@ -17,15 +17,15 @@ spot_node_pool = {
   eviction_policy = "Delete"
 }
 
-acr_sku               = "Premium"
-enable_agic           = true
-enable_front_door     = true
-enable_traffic_manager = true   # enable for multi-region / failover routing
-log_retention_days    = 90
+acr_sku                = "Premium"
+enable_agic            = true
+enable_front_door      = true
+enable_traffic_manager = true # enable for multi-region / failover routing
+log_retention_days     = 90
 
 # Monitoring: pick option A, option B, or both (docs/09-monitoring-options.md)
-enable_container_insights          = true   # Option A: Log Analytics + App Insights
-enable_managed_prometheus_grafana  = true   # Option B: Azure Managed Prometheus + Grafana
+enable_container_insights         = true # Option A: Log Analytics + App Insights
+enable_managed_prometheus_grafana = true # Option B: Azure Managed Prometheus + Grafana
 
 tags = {
   cost_center = "engineering"
