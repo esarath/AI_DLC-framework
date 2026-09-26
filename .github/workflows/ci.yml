@@ -53,7 +53,7 @@ jobs:
 
       # ---- guardrail: image vulnerability scan blocks the pipeline ----
       - name: Trivy scan (fail on HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: "${{ env.DEV_ACR }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}"
           severity: HIGH,CRITICAL
